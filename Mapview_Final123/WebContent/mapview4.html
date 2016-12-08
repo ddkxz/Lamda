@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>D3 Example</title>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+  </head>
+  <body>
+  <svg width="599" height="700"></svg>
+
+    <script>
+    var data = [{x: -151696 , y:1083178},{x:1082928 , y: -363649},{x: -151639, y:-363640 },{x:1082928 , y:359832 },{x:-151647 , y:359834 },{x: 1082898, y:1083173 }];
+//    var data = [{x: -151696 , y:1083178}];
+
+var xsize = 680340, ysize = 1209590;
+      var yscale = d3.scale.linear();
+//       yscale.domain([-373640, 1093178+1209590]);  // Data space
+//       yscale.range([0, 700]); // Pixel space
+      yscale.domain([d3.min(data, function(d){return d.y;}), d3.max(data, function(d){return d.y;})+2*ysize]);
+      yscale.range([0, 700]); // Pixel space
+      
+      var xscale = d3.scale.linear();
+//       xscale.domain([-161696, 1092928+680340]);  // Data space
+//       xscale.range([0, 599]); // Pixel space
+      xscale.domain([d3.min(data, function(d){return d.x;}), d3.max(data, function(d){return d.x;})+2*xsize]);
+      xscale.range([0, 599]); //
+      
+      var colorscale = d3.scale.category10();
+      
+      document.write(xscale(1083178)+" // "+xscale(-151696));
+//       document.write(scale(-1194840));
+
+document.write(new Date(1476928800000)+" || "+new Date(1477404000000));
+
+      d3.select("svg").selectAll("rect").data(data).enter().append("rect")
+	  	.attr("x", function (d){return xscale(d.x);})
+	  	.attr("y", function (d){return yscale(d.y);})
+	  	.attr("width", function (d){return xscale(680340-101696);})
+	  	.attr("height", function (d){return yscale(1209590-373640-600000);})
+	// 	.attr("width", function (d){return scale(680340);})
+     // 	.attr("height", function (d){return scale(1209590);});
+     // 	.attr("transform", "translate(0, 0)");
+     	.exit().remove();
+     
+//      d3.select("svg").selectAll("circle").data(data).enter().append("circle")
+//      	.attr("cx", function (d){ return xscale(d.xPos);})
+//      	.attr("cy", function (d){ return yscale(d.yPos);})
+//      	.attr("r", 2)
+//      	.attr("stroke", function (d){ return colorscale(d.defectCode);})
+//      	.exit().remove();
+
+    </script>
+
+  </body>
+</html>

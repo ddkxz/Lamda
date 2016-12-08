@@ -1,0 +1,209 @@
+<html>
+<head>
+<style>
+
+table {font-size: 12px;}
+
+select {
+    margin: 0px;
+    width: 170px;
+    padding: 3px;
+    border: 1px solid #CCC;
+    border-radius: 5px;
+    background: #FCFCFC;
+    height: 100px;
+    float: right;
+}
+
+rect : hover {
+  fill: gray;
+  stroke: #000;
+  stroke-width: 0px;
+}
+
+.circle { 
+  stroke: white;
+  r : 10px;
+}
+
+div.tooltip {	
+    position: absolute;			
+    text-align: center;			
+    width: 100px;					
+    height: 18px;					
+    padding: 2px;
+    				
+    font-size: 9px;		
+    background: white;	
+    border: 1px;
+    border-color: white;		
+    border-radius: 1px;			
+    pointer-events: none;	
+    z-index:999;		
+}
+
+i {float: right;}
+
+.right {
+  position: absolute;
+  left: 700px;
+  top: 0px;
+ }
+
+.gselectClass {background-color : black; color: white}
+
+#option_button {position: absolute; z-index:4; background-color:orange; border:1px; left:600px; top:16px;}
+#mainlist {position: absolute; z-index:3;background-color:white;}
+#options {position: absolute; z-index:2;background-color:lightblue; border:1px; left:390px; width:330px; height:500px; opacity:1.0}
+#mapView {position: absolute; z-index:1; cursor:crosshair; padding:30px; background: rgba(0,0,0,0.2); border:1px; left:720px; width:720px; height:608px;}
+
+
+</style>
+
+<link rel="stylesheet" href="css/icono.min.css">
+
+<script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+
+<!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script> -->
+<script src="js/jquery.plugin.min.js"></script>
+<script src="js/jquery.datetimeentry.min.js"></script>
+<script src="js/jquery.mousewheel.min.js"></script>
+<script src="js/d3.v3.min.js"></script>
+<script src="js/angular.js"></script>
+
+<script>
+
+  $(function () {
+		$('#timepicker1, #timepicker2').datetimeEntry({datetimeFormat: 'Y-O-D  H:M'}); //나중에 미니멈설정 필요.
+	});  
+</script>
+
+
+
+</head>
+<body ng-app="map_app" ng-controller="mainCtrl">
+<div id="mapView"><svg width="718" height="600"></svg></div>
+
+<div id="options">
+<table border="1" cellpadding="1" cellspacing="1" style="margin:30px 0px 0px 15px; width:300px">
+	<tbody>
+		
+		<tr>
+			<td rowspan="2" style="height: 30px;">TIME RANGE</td>
+			<td style="height: 30px;">From<input type="text" id="timepicker1" size="17"  style="float:right"/></td>
+		</tr>
+		<tr>
+			<td style="height: 30px;">To<input type="text" id="timepicker2" size="17" style="float:right"/></td>
+		</tr>
+		<tr>
+			<td style="height: 30px;">RECIPE</td>
+			<td>
+			 	<select id="recipeSelections" size="5"></select>
+    		</td>
+		</tr>
+		<tr>
+			<td style="height: 30px;">EQP ID<input type="checkbox" id="chk_eqp_id"/></td>
+			<td>
+			 	<select id="eqp_idSelections" size="5" multiple="multiple" disabled></select>
+    		</td>
+		</tr>
+		<tr>
+			<td style="height: 30px;">DEFECT CODE<input type="checkbox" id="chk_defect_code"/></td>
+			<td>
+			 	<select id="defect_codeSelections" size="5" multiple="multiple" disabled></select>
+    		</td>
+		</tr>
+		<tr>
+			<td style="height: 30px;"><button id="reset" >Reset</button></td>
+			<td><button id="submit" style="float:right;" ng-click="sendPost()">Submit</button></td>
+		</tr>
+	</tbody>
+</table>
+
+
+
+
+
+</div>
+<div id="option_button">Show Options</div>
+
+<div id="mainlist">
+<table border="1" cellpadding="1" cellspacing="1" style="width:700px">
+	<tbody>
+		<tr>
+			<td style="width: 150px; height: 30px;">SEARCH RESULT</td>
+			<td colspan="3" style="height: 30px;"></td>
+		</tr>
+		<tr>
+			<td style="height: 30px;">TIME RANGE</td>			
+			<td class="selections" id="key_time1" style="width: 150px; height: 30px;"></td>
+			<td style="height: 30px;">~</td>
+			<td class="selections" id="key_time2" style="width: 150px; height: 30px;"></td>
+		</tr>
+		<tr>
+			<td style="height: 30px;">RECIPE</td>
+			<td class="selections" colspan="3"  id="key_recipe" style="height: 30px;"></td>
+		</tr>
+		<tr>
+			<td style="height: 30px;">EQP ID</td>
+			<td class="selections" colspan="3"  id="key_eqp_id" style="height: 30px;"></td>
+		</tr>
+		<tr>
+			<td style="height: 30px;">DEFECT CODE</td>
+			<td class="selections" colspan="3"   id="key_defect_code"></td>
+		</tr>
+	</tbody>
+</table>
+
+<p>&nbsp;</p>
+<div style="height:250px; overflow-y:scroll; background-color: ivory;">
+<table id="glassList" border="1" cellpadding="1" cellspacing="1" style="width:700px">
+	<tr>
+			<td style="width: 100px;">EQP ID</td>
+			<td class="sort" style="width: 100px;" ng-click="sortColumn='lot_id'; reverse=!reverse">LOT ID<i class="icono-caretUpSquare"></i></td>
+			<td class="sort" style="width: 100px;" ng-click="sortColumn='glass_id'; reverse=!reverse">GLASS ID<i class="icono-caretUpSquare"></i></td>
+			<td style="width: 100px;">PANEL COUNT</td>
+			<td style="width: 100px;">GLASS GRADE</td>
+			<td style="width: 100px;">STEP ID</td>
+			<td class="sort" style="width: 100px;" ng-click="sortColumn='unit_id'; reverse=!reverse">UNIT ID<i class="icono-caretUpSquare"></i></td>
+	</tr>
+	<tr class="gClass" ng-repeat="glass_list in glass_lists | orderBy: sortColumn: reverse" ng-click="sendDefect($event, glass_list.glass_id, glass_list.panel_count)">
+			<td style="width: 100px;">{{glass_list.eqp_id}}</td>
+			<td style="width: 100px;">{{glass_list.lot_id}}</td>
+			<td style="width: 100px;">{{glass_list.glass_id}}</td>
+			<td style="width: 100px;">{{glass_list.panel_count}}</td>
+			<td style="width: 100px;">{{glass_list.glass_grade}}</td>
+			<td style="width: 100px;">{{glass_list.step_id}}</td>
+			<td style="width: 100px;">{{glass_list.unit_id}}</td>
+	</tr>
+</table>
+</div>
+
+<p></p>
+<div ng-controller="defectCtrl" style="padding-top:0px; height:250px; overflow-y:scroll; background-color: ivory;">
+<table border="1" cellpadding="1" cellspacing="1" style="width:700px">
+	<tbody>
+		<tr>
+			<td class="sort" style="width: 115px;" ng-click="sortField='p_glass_id'; reverse=!reverse">GLASS ID<i class="icono-caretUpSquare"></i></td>
+			<td class="sort" style="width: 115px;" ng-click="sortField='panel_id'; reverse=!reverse">PANEL ID<i class="icono-caretUpSquare"></i></td>
+			<td style="width: 115px;">DEFECT ID</td>
+			<td class="sort" style="width: 115px;" ng-click="sortField='defect_code'; reverse=!reverse">DEFECT CODE<i class="icono-caretUpSquare"></i></td>
+			<td style="width: 115px;">COORD_X</td>
+			<td style="width: 115px;">COORD_Y</td>
+		</tr>
+		<tr ng-repeat="defect_list in defect_lists | orderBy: sortField: reverse" ng-click="sendMapview">
+			<td style="width: 115px;">{{defect_list.p_glass_id}}</td>
+			<td style="width: 115px;">{{defect_list.panel_id}}</td>
+			<td style="width: 115px;">{{defect_list.defect_id}}</td>
+			<td style="width: 115px;">{{defect_list.defect_code}}</td>
+			<td style="width: 115px;">{{defect_list.coord_x}}</td>
+			<td style="width: 115px;">{{defect_list.coord_y}}</td>
+		</tr>
+	</tbody>
+</table>
+</div>
+<script src="user_script/select_option.js"></script>
+<script src="user_script/search_result2.js"></script>
+
+</body>
+</html>
